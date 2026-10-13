@@ -1,0 +1,1 @@
+FROM flaresolverr/flaresolverr:latest
