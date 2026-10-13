@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Y2Mate Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eef5;--surface:#fff;--ink:#12203a;--muted:#5b6b86;--line:#d3dbe8;--accent:#2f5bff;--accent-ink:#fff;--signal:#ffc83d;--err:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1626;--surface:#17233a;--ink:#e8eefb;--muted:#9aabc7;--line:#2a3a58;--accent:#6e8bff;--accent-ink:#0e1626;--err:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:2rem 1rem 4rem}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+h1{font-size:1.5rem;font-weight:800;margin:0;letter-spacing:-.01em}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:.35rem .9rem;display:flex;gap:.5rem;align-items:center}
+.dot{width:.6rem;height:.6rem;border-radius:50%;background:var(--err)}
+.dot.on{background:#1f9d55}
+form.search{display:flex;gap:.5rem;background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:.4rem}
+form.search input{flex:1;border:0;background:none;padding:.7rem .8rem;font-size:1.15rem;min-width:0}
+form.search input:focus{outline:none}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:.7rem 1.3rem;font-weight:600}
+.primary:disabled{opacity:.5;cursor:wait}
+#msg{min-height:1.5rem;margin:1rem .25rem;color:var(--muted)}
+#msg.err{color:var(--err)}
+.row{display:flex;gap:.9rem;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.6rem;margin-bottom:.5rem}
+.row:hover{border-color:var(--accent)}
+.row img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--line)}
+.card .body{padding:1rem 1.2rem 1.3rem}
+.card h2{font-size:1.2rem;margin:0 0 1rem;line-height:1.3}
+.tabs{display:flex;gap:.4rem;margin-bottom:.8rem}
+.tabs button{border:1px solid var(--line);background:none;border-radius:8px;padding:.35rem 1rem}
+.tabs button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.5rem .8rem;text-align:left;line-height:1.25}
+.chip small{display:block;color:var(--muted)}
+.chip:hover,.chip.busy{border-color:var(--accent)}
+.chip.busy{background:var(--signal);color:#12203a}
+.chip.busy small{color:#12203a}
+.save{display:inline-block;margin-top:1.1rem;background:var(--signal);color:#12203a;font-weight:800;text-decoration:none;border-radius:10px;padding:.8rem 1.4rem}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);max-width:460px;width:calc(100% - 2rem)}
+dialog::backdrop{background:rgba(10,15,30,.55)}
+dialog input{width:100%;padding:.6rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin:.6rem 0}
+dialog p{margin:.4rem 0;color:var(--muted);font-size:.92rem}
+dialog menu{display:flex;gap:.5rem;justify-content:flex-end;padding:0;margin:.5rem 0 0}
+.bar{display:flex;gap:.5rem}
+#keyDlg{max-width:560px}
+.krow{display:flex;gap:.6rem;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:.55rem 0;font-size:.95rem}
+.krow small{display:block;color:var(--muted)}
+.newkey{background:var(--signal);color:#12203a;border-radius:8px;padding:.7rem;margin:.6rem 0;word-break:break-all;font-family:ui-monospace,monospace;font-size:.88rem}
+.inline{display:flex;gap:.5rem}
+.inline input{margin:.6rem 0}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .25s ease-out}@keyframes in{from{opacity:0}to{opacity:1}}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Y2Mate Web</h1>
+    <div class="bar">
+      <button class="ghost" id="keyBtn" type="button">API Key</button>
+      <button class="ghost" id="cookieBtn" type="button"><span class="dot" id="dot"></span>Cookie</button>
+    </div>
+  </header>
+
+  <form class="search" id="form">
+    <input id="q" type="text" placeholder="Tempel link YouTube, ID video, atau ketik judul" autocomplete="off" required>
+    <button class="primary" id="go">Cari</button>
+  </form>
+  <div id="msg" role="status" aria-live="polite"></div>
+  <section id="out"></section>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="cookieForm">
+    <strong>Cookie cf_clearance</strong>
+    <p>y2mate.com dilindungi Cloudflare. Buka y2mate.com di Chrome, lolos verifikasi, lalu salin nilai cookie <code>cf_clearance</code> (DevTools → Application → Cookies).</p>
+    <p>Cookie cepat kedaluwarsa. Isi ulang bila muncul pesan ditolak.</p>
+    <input id="cf" type="password" placeholder="Tempel nilai cf_clearance" autocomplete="off">
+    <menu>
+      <button value="cancel" type="button" class="ghost" id="cancel">Batal</button>
+      <button class="primary" id="saveCf" type="button">Simpan cookie</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="keyDlg">
+  <strong>API Key untuk project lain</strong>
+  <p>Project lain memanggil <code>/v1/*</code> dengan header <code>X-API-Key</code>. Password admin tercetak di terminal saat server dijalankan.</p>
+  <div class="inline">
+    <input id="adminPw" type="password" placeholder="Password admin" autocomplete="off">
+    <button class="primary" id="adminGo" type="button" style="margin:.6rem 0">Masuk</button>
+  </div>
+  <div id="keyPanel" hidden>
+    <div class="inline">
+      <input id="keyName" type="text" placeholder="Nama key, mis. bot-wa" maxlength="60">
+      <button class="primary" id="keyNew" type="button" style="margin:.6rem 0">Buat key</button>
+    </div>
+    <div id="keyShown"></div>
+    <div id="keyList"></div>
+  </div>
+  <menu><button type="button" class="ghost" id="keyClose">Tutup</button></menu>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const out = $("#out"), msg = $("#msg");
+const say = (t, err) => { msg.textContent = t || ""; msg.className = err ? "err" : ""; };
+const thumb = v => `https://i.ytimg.com/vi/${v}/mqdefault.jpg`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {});
+  const d = await r.json().catch(() => ({ok: false, message: "Respons server tidak terbaca."}));
+  if (!d.ok && d.error === "blocked") setDot(false);
+  if (d.ok === false) throw new Error(d.message || "Terjadi kesalahan.");
+  return d;
+}
+function setDot(on) { $("#dot").classList.toggle("on", on); }
+api("/api/status").then(d => {
+  setDot(d.has_cookie);
+  if (d.auto) {
+    $("#cookieBtn").lastChild.textContent = "Cookie otomatis";
+    $("#cookieBtn").title = d.refresh_error ? `Pembaruan terakhir gagal: ${d.refresh_error}` : "Diperbarui otomatis di latar belakang";
+  }
+}).catch(() => {});
+
+function el(tag, props = {}, ...kids) {
+  const e = Object.assign(document.createElement(tag), props);
+  kids.forEach(k => e.append(k));
+  return e;
+}
+
+$("#form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const q = $("#q").value.trim();
+  if (!q) return;
+  $("#go").disabled = true; out.replaceChildren(); say("Mencari…");
+  try {
+    const d = await api("/api/search", {query: q});
+    say("");
+    d.kind === "search" ? showResults(d.items) : showVideo(d);
+  } catch (err) { say(err.message, true); }
+  $("#go").disabled = false;
+});
+
+function showResults(items) {
+  if (!items.length) return say("Tidak ada hasil. Coba kata kunci lain.");
+  out.replaceChildren(...items.map(i => {
+    const b = el("button", {className: "row", type: "button"},
+      el("img", {src: thumb(i.vid), alt: "", loading: "lazy"}), el("span", {textContent: i.title}));
+    b.onclick = async () => {
+      out.replaceChildren(); say("Memuat pilihan kualitas…");
+      try { showVideo(await api("/api/formats", {vid: i.vid})); say(""); }
+      catch (err) { say(err.message, true); }
+    };
+    return b;
+  }));
+}
+
+function showVideo(v) {
+  let tab = v.video.length ? "video" : "audio";
+  const chips = el("div", {className: "chips"});
+  const result = el("div");
+  const tabs = el("div", {className: "tabs"});
+  const draw = () => {
+    tabs.replaceChildren(...[["video", "Video"], ["audio", "Audio"]].map(([k, label]) => {
+      const b = el("button", {type: "button", textContent: label});
+      b.setAttribute("aria-pressed", k === tab);
+      b.onclick = () => { tab = k; result.replaceChildren(); draw(); };
+      return b;
+    }));
+    const list = v[tab];
+    chips.replaceChildren(...(list.length ? list.map(f => {
+      const c = el("button", {className: "chip", type: "button"},
+        `${f.q} · ${f.f}`, el("small", {textContent: f.size || ""}));
+      c.onclick = () => convert(v.vid, f, c, result);
+      return c;
+    }) : [el("span", {textContent: "Format tidak tersedia.", style: "color:var(--muted)"})]));
+  };
+  draw();
+  out.replaceChildren(el("div", {className: "card"},
+    el("img", {src: thumb(v.vid), alt: ""}),
+    el("div", {className: "body"}, el("h2", {textContent: v.title}), tabs, chips, result)));
+}
+
+async function convert(vid, f, chip, result) {
+  document.querySelectorAll(".chip").forEach(c => c.disabled = true);
+  chip.classList.add("busy"); result.replaceChildren(); say("Mengonversi… ini bisa butuh beberapa detik.");
+  try {
+    for (let i = 0; i < 10; i++) {
+      const d = await api("/api/convert", {vid, k: f.k});
+      if (d.dlink && d.state !== "CONVERTING") {
+        say("");
+        result.replaceChildren(el("a", {className: "save", href: d.dlink, target: "_blank", rel: "noopener", textContent: `Simpan ${d.fquality || f.q} (${d.ftype || f.f})`}));
+        break;
+      }
+      if (i === 9) throw new Error("Konversi terlalu lama. Coba lagi.");
+      await sleep(3000);
+    }
+  } catch (err) { say(err.message, true); }
+  chip.classList.remove("busy");
+  document.querySelectorAll(".chip").forEach(c => c.disabled = false);
+}
+
+let adminPw = "";
+const kd = $("#keyDlg");
+async function admin(method, path, body) {
+  const r = await fetch(path, {method, headers: {"Content-Type": "application/json", "X-Admin-Password": adminPw}, body: body ? JSON.stringify(body) : undefined});
+  const d = await r.json().catch(() => ({ok: false, message: "Respons server tidak terbaca."}));
+  if (!d.ok) throw new Error(d.message || "Terjadi kesalahan.");
+  return d;
+}
+const fmt = t => t ? new Date(t * 1000).toLocaleString("id-ID") : "belum dipakai";
+async function loadKeys() {
+  const d = await admin("GET", "/admin/keys");
+  $("#keyList").replaceChildren(...(d.keys.length ? d.keys.map(k => {
+    const del = el("button", {className: "ghost", type: "button", textContent: "Cabut"});
+    del.onclick = async () => { if (confirm(`Cabut key "${k.name}"? Project yang memakainya tidak bisa terhubung lagi.`)) { await admin("DELETE", `/admin/keys/${k.id}`); loadKeys(); } };
+    return el("div", {className: "krow"}, el("span", {}, k.name, el("small", {textContent: `${k.prefix}… · terakhir dipakai: ${fmt(k.last_used)}`})), del);
+  }) : [el("p", {textContent: "Belum ada key. Buat satu untuk menghubungkan project lain."})]));
+}
+$("#keyBtn").onclick = () => kd.showModal();
+$("#keyClose").onclick = () => { adminPw = ""; $("#adminPw").value = ""; $("#keyPanel").hidden = true; $("#keyShown").replaceChildren(); kd.close(); };
+$("#adminGo").onclick = async () => {
+  adminPw = $("#adminPw").value;
+  try { await loadKeys(); $("#keyPanel").hidden = false; } catch (err) { alert(err.message); }
+};
+$("#keyNew").onclick = async () => {
+  try {
+    const d = await admin("POST", "/admin/keys", {name: $("#keyName").value});
+    $("#keyName").value = "";
+    const copy = el("button", {className: "ghost", type: "button", textContent: "Salin"});
+    copy.onclick = () => navigator.clipboard.writeText(d.key);
+    $("#keyShown").replaceChildren(el("p", {textContent: "Salin sekarang. Key ini hanya tampil sekali."}), el("div", {className: "newkey", textContent: d.key}), copy);
+    loadKeys();
+  } catch (err) { alert(err.message); }
+};
+
+const dlg = $("#dlg");
+$("#cookieBtn").onclick = () => dlg.showModal();
+$("#cancel").onclick = () => dlg.close();
+$("#saveCf").onclick = async () => {
+  try { await api("/api/cookie", {cf_clearance: $("#cf").value}); setDot(true); $("#cf").value = ""; dlg.close(); say("Cookie disimpan. Coba cari lagi."); }
+  catch (err) { say(err.message, true); dlg.close(); }
+};
+</script>
+</body>
+</html>
